@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">MapboxNavi</string>
+    <string name="access_token" translatable="false">pk.eyJ1IjoiaGVhZGJhbmc5MiIsImEiOiJjamF4dTFqdng3cXE1MzNxOHBlMjNldDR0In0.lRmltVlXuYhDU7bUet_qRw</string>
+</resources>
