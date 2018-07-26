@@ -27,11 +27,14 @@ dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation 'com.android.support:appcompat-v7:27.1.1'
     implementation 'com.android.support.constraint:constraint-layout:1.1.2'
-    implementation 'com.mapbox.mapboxsdk:mapbox-android-navigation:0.15.0'
-//    implementation ('com.mapbox.mapboxsdk:mapbox-android-sdk:6.2.1@aar') {
-//        transitive=true
-//    }
-    implementation('com.mapbox.mapboxsdk:mapbox-android-navigation-ui:0.15.0') {
+
+    implementation 'com.mapbox.mapboxsdk:mapbox-android-sdk:6.3.0'
+
+    implementation ('com.mapbox.mapboxsdk:mapbox-android-sdk:6.3.0@aar') {
+        transitive=true
+    }
+    implementation 'com.mapbox.mapboxsdk:mapbox-android-navigation:0.16.0'
+    implementation ('com.mapbox.mapboxsdk:mapbox-android-navigation-ui:0.16.0') {
         transitive = true
     }
     testImplementation 'junit:junit:4.12'
