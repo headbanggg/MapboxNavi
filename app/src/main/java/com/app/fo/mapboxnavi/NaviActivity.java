@@ -4,6 +4,10 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 
 // classes needed to initialize map
+import com.mapbox.api.directions.v5.DirectionsCriteria;
+import com.mapbox.api.directions.v5.models.RouteOptions;
+import com.mapbox.api.matching.v5.MapboxMapMatching;
+import com.mapbox.api.matching.v5.models.MapMatchingResponse;
 import com.mapbox.mapboxsdk.Mapbox;
 import com.mapbox.mapboxsdk.maps.MapView;
 
@@ -34,7 +38,9 @@ import com.mapbox.mapboxsdk.annotations.Marker;
 import com.mapbox.mapboxsdk.annotations.MarkerOptions;
 
 // classes to calculate a route
+import com.mapbox.services.android.navigation.ui.v5.NavigationView;
 import com.mapbox.services.android.navigation.ui.v5.route.NavigationMapRoute;
+import com.mapbox.services.android.navigation.v5.navigation.MapboxNavigation;
 import com.mapbox.services.android.navigation.v5.navigation.NavigationRoute;
 import com.mapbox.api.directions.v5.models.DirectionsResponse;
 import com.mapbox.api.directions.v5.models.DirectionsRoute;
@@ -51,7 +57,11 @@ import android.widget.Button;
 
 import com.mapbox.services.android.navigation.ui.v5.NavigationLauncher;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
+import java.util.ListIterator;
 
 
 public class NaviActivity extends AppCompatActivity implements LocationEngineListener, PermissionsListener {
@@ -64,6 +74,8 @@ public class NaviActivity extends AppCompatActivity implements LocationEngineLis
         private LocationLayerPlugin locationPlugin;
         private LocationEngine locationEngine;
         private Location originLocation;
+
+    DirectionsRoute directionsRoute;
 
 
     // variables for adding a marker
@@ -98,7 +110,7 @@ public class NaviActivity extends AppCompatActivity implements LocationEngineLis
             public void onClick(View v) {
                 boolean simulateRoute = true;
                 NavigationLauncherOptions options = NavigationLauncherOptions.builder()
-                        .directionsRoute(currentRoute)
+                        .directionsRoute(directionsRoute)
                         .shouldSimulateRoute(simulateRoute)
                         .build();
 
@@ -126,20 +138,13 @@ public class NaviActivity extends AppCompatActivity implements LocationEngineLis
                             destinationCoord = point;
                             destinationMarker = mapboxMap.addMarker(new MarkerOptions()
                                     .position(destinationCoord)
-
-
-
                             );
 
                             destinationPosition = Point.fromLngLat(destinationCoord.getLongitude(), destinationCoord.getLatitude());
                             originPosition = Point.fromLngLat(originCoord.getLongitude(), originCoord.getLatitude());
                             getRoute(originPosition, destinationPosition);
-
                             button.setEnabled(true);
                             button.setBackgroundResource(R.color.mapboxBlue);
-
-
-
                         }
 
                         ;
@@ -289,40 +294,55 @@ public class NaviActivity extends AppCompatActivity implements LocationEngineLis
 
 
     private void getRoute(Point origin, Point destination) {
-        NavigationRoute.builder(this)
+
+        List<Point> pointList = new ArrayList<>();
+        pointList.add(Point.fromLngLat(29.232760,40.974337 ));
+        pointList.add(Point.fromLngLat(29.231857,40.972991 ));
+        pointList.add(Point.fromLngLat(29.231857,40.972991 ));
+        pointList.add(Point.fromLngLat(29.235857,40.972991 ));
+        pointList.add(Point.fromLngLat(29.232305,40.971515));
+
+
+                System.out.println("mine "+pointList.size());
+
+getMapMatchingRoute(pointList);
+    }
+
+    private void getMapMatchingRoute(List<Point> points){
+        MapboxMapMatching.builder()
                 .accessToken(Mapbox.getAccessToken())
-                .origin(origin)
-                .destination(destination)
+                .coordinates(points)
+                .steps(true)
+                .voiceInstructions(true)
+                .bannerInstructions(true)
+                .profile(DirectionsCriteria.PROFILE_DRIVING)
                 .build()
-                .getRoute(new Callback<DirectionsResponse>() {
+                .enqueueCall(new Callback<MapMatchingResponse>() {
                     @Override
-                    public void onResponse(Call<DirectionsResponse> call, Response<DirectionsResponse> response) {
-                        // You can get the generic HTTP info about the response
-                        Log.d(TAG, "Response code: " + response.code());
-                        if (response.body() == null) {
-                            Log.e(TAG, "No routes found, make sure you set the right user and access token.");
-                            return;
-                        } else if (response.body().routes().size() < 1) {
-                            Log.e(TAG, "No routes found");
-                            return;
-                        }
+                    public void onResponse(Call<MapMatchingResponse> call, Response<MapMatchingResponse> response) {
+                        if (response.isSuccessful()) {
+                             directionsRoute = response.body().matchings().get(0).toDirectionRoute();
+                            Log.i("directions route: ",directionsRoute.toString());
+                            //navigation.startNavigation(route);
+                            // Draw the route on the map
+                            if (navigationMapRoute != null) {
+                                navigationMapRoute.removeRoute();
+                            } else {
+                                navigationMapRoute = new NavigationMapRoute(null, mapView, map, R.style.NavigationMapRoute);
+                            }
+                            navigationMapRoute.addRoute(directionsRoute);
 
-                        currentRoute = response.body().routes().get(0);
-
-                        // Draw the route on the map
-                        if (navigationMapRoute != null) {
-                            navigationMapRoute.removeRoute();
-                        } else {
-                            navigationMapRoute = new NavigationMapRoute(null, mapView, map, R.style.NavigationMapRoute);
                         }
-                        navigationMapRoute.addRoute(currentRoute);
                     }
 
                     @Override
-                    public void onFailure(Call<DirectionsResponse> call, Throwable throwable) {
-                        Log.e(TAG, "Error: " + throwable.getMessage());
+                    public void onFailure(Call<MapMatchingResponse> call, Throwable throwable) {
                     }
                 });
+    }
+
+    private void startNavi(DirectionsRoute dirRoute,MapboxNavigation mapboxNavigation){
+        mapboxNavigation.startNavigation(dirRoute);
     }
     }
 
