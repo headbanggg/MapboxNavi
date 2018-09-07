@@ -22,4 +22,10 @@
         mapbox:mapbox_cameraTargetLng="-77.0295"
         mapbox:mapbox_styleUrl="mapbox://styles/mapbox/streets-v10"
         mapbox:mapbox_cameraZoom="12"/>
+
+
+    <com.mapbox.services.android.navigation.ui.v5.NavigationView
+        android:id="@+id/navigationView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"></com.mapbox.services.android.navigation.ui.v5.NavigationView>
 </RelativeLayout>
